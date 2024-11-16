@@ -1,9 +1,12 @@
 <?php
 
 require 'autenticator.php';
+// Verificamos si la sesión no está ya activa para evitar errores al cambiar el nombre o iniciar una nueva sesión
+if (session_status() == PHP_SESSION_NONE) {
+    session_name('login');
+    session_start();
+}
 
-session_name('login');
-session_start();
 
 ?>
 
