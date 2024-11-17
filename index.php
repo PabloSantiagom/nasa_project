@@ -127,13 +127,17 @@ curl_close($ch2);
         <canvas id="canvas"></canvas>
         <div class="content">
             <form method="post" action="index.php">
-                <label for="date">CHOOSE THE NASA PIC OF ANOTHER DAY:</label>
-                <input style="color: #000000;" type="date" id="date" name="date" value="<?php echo $fecha_calendario; ?>">
-                <input style="color: #000000;" type="submit" value="Submit">
+            <br>
+                <label for="date">SELECCIONA UNA FOTO DE UN DÍA ANTERIOR:</label>
+                <br>
+                <br>
+                <input class="login-btn" type="date" id="date" name="date" value="<?php echo $fecha_calendario; ?>">
+                <input class="login-btn" type="submit" value="Submit">
             </form>
         </div>
 
         <div class=showApi>
+            <br>
             <h1>Exploración Espacial</h1>
             <br>
             <h1>Viaja a las estrellas y descubre los secretos del universo <br>
