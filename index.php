@@ -107,7 +107,7 @@ curl_close($ch2);
     <title>NASA PIC OF THE DAY</title>
 
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
 </head>
 
 <body>
@@ -122,6 +122,7 @@ curl_close($ch2);
 
 
     <section class="calendar">
+        <h1>NASA PIC OF THE DAY</h1>
     <img src="./images/nasa2.png" alt="nasa" class="center">
 
         <canvas id="canvas"></canvas>
@@ -164,7 +165,7 @@ curl_close($ch2);
             <?php
             if (isset($data) && str_contains($data['url'], 'image')) {
                 echo "<div style='text-align: center; margin-top: 20px;'>";
-                echo "<a href='" . $data['url'] . "' download class='download-button'>Descargar Imagen</a>";
+                echo "<a  href='" . $data['url'] . "' download class='download-button'>Descargar Imagen</a>";
                 echo "</div>";
             }
             ?>
@@ -207,7 +208,7 @@ curl_close($ch2);
                             <p>Diámetro mínimo (km): <?php echo htmlspecialchars($obj['estimated_diameter']['kilometers']['estimated_diameter_min']); ?></p>
                             <p>Diámetro máximo (km): <?php echo htmlspecialchars($obj['estimated_diameter']['kilometers']['estimated_diameter_max']); ?></p>
                         <?php endif; ?>
-                        <a href="<?php echo htmlspecialchars($obj['nasa_jpl_url']); ?>" target="_blank">Más información</a>
+                        <a href="<?php echo htmlspecialchars($obj['nasa_jpl_url']); ?>" style="login-btn" target="_blank">Más información</a>
                     </div>
                 <?php endforeach; ?>
             </div>

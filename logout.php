@@ -1,8 +1,6 @@
 <?php
-    session_name('pablo');
-    session_start();
-    session_destroy();
+session_name('login');
+session_start();
+session_destroy();
 
-    header('location:login.php');
-
-?>
+header('location:login.php');
