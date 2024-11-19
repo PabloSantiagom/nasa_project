@@ -1,23 +1,4 @@
 <!-- IMPLEMENTAMOS LA COOKIE-->
-<?php
-if (!isset($_COOKIE["accesos"])) {
-    // Establecemos los valores iniciales para accesos y tokens
-    $tokens = ($api_key == "DEMO_KEY") ? 50 : 2000;
-    setcookie("tokens", $tokens, time() + 3600 * 24);
-    setcookie("accesos", 1, time() + 3600 * 365 * 24);
-} else {
-    // Incrementamos accesos y decrementamos tokens
-    $accesos = isset($_COOKIE["accesos"]) ? $_COOKIE["accesos"] : 0;
-    $accesos++;
-    setcookie("accesos", $accesos, time() + 3600 * 365 * 24);
-
-    $tokens = isset($_COOKIE["tokens"]) ? $_COOKIE["tokens"] : 0;
-    $tokens--;
-    setcookie("tokens", $tokens, time() + 3600 * 24);
-}
-?>
-
-
 
 <?php
 
@@ -32,9 +13,6 @@ if (session_status() == PHP_SESSION_NONE) {
 ?>
 
 <?php
-
-
-
 
 // Tu clave de API de la NASA (reemplázala con tu propia clave)
 $api_key = "qyvBkVaphx9UBX9vrac97bx2PIKFn7Fvp4e7Wwie";
@@ -55,10 +33,16 @@ $ch = curl_init();
 // Configura las opciones de cURL
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HEADER, true);
+//curl_setopt($ch, CURLOPT_HEADER, true);
 
 // Ejecuta la petición cURL
 $response = curl_exec($ch);
+
+
+//ESTO PARA CARGAR LA INFO DEL HEADER PARA EL DATO DE LAS PETICIONES
+$headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+$headers = substr($response, 0, $headerSize);
+$dataHeader = substr($response, $headerSize);
 
 // Maneja errores y decodifica la respuesta
 if ($response === false) {
@@ -73,20 +57,20 @@ if ($response === false) {
 }
 
 
-//Creamos unos array del apartado headers 
+//Creamos un array del apartado headers 
 
-$headers = explode("\r\n", $response);
-foreach ($headers as $header) {
-    if (stripos($header, 'X-RateLimit-Remaining:') === 0) {
-        list(, $remaining) = explode(': ', $header);
-        echo "Peticiones restantes: " . trim($remaining) . PHP_EOL;
+// Procesa los headers
+$headerArray = [];
+foreach (explode("\r\n", $headers) as $header) {
+    if (strpos($header, ':') !== false) {
+        list($key, $value) = explode(': ', $header, 2);
+        $headerArray[trim($key)] = trim($value);
     }
 }
 
 
 
 
-var_dump($data);
 
 // Cierra la sesión cURL
 curl_close($ch);
@@ -121,6 +105,12 @@ if ($response2 === false) {
 
 // Cierra la sesión cURL
 curl_close($ch2);
+
+
+
+echo "<pre>";
+var_dump($data);
+echo "</pre>";
 ?>
 
 
@@ -148,7 +138,7 @@ curl_close($ch2);
 
 <body>
         <div class="hero">
-            <h2 class="hero"><?php echo "HOY PODRÁS ACCEDER A LAS IMAGENES DE LA NASA ".$remaining." VECES MÁS"
+            <h2 class="hero"><?php echo "HOY PODRÁS ACCEDER A LAS IMAGENES DE LA NASA ".$headerArray['X-RateLimit-Remaining']." VECES MÁS"
             ?></h2></div>
 
 
@@ -176,9 +166,11 @@ curl_close($ch2);
                 <input class="login-btn" type="date" id="date" name="date" value="<?php echo $fecha_calendario; ?>">
                 <input class="login-btn" type="submit" value="Submit">
             </form>
+
+            
         </div>
 
-        <div class=showApi>
+        <div class="hero">
             <br>
             <h1>Exploración Espacial</h1>
             <br>
@@ -202,6 +194,8 @@ curl_close($ch2);
             }
 
             ?>
+
+
             <!-- Botón de descarga de la imagen -->
             <?php
             if (isset($data) && str_contains($data['url'], 'image')) {
