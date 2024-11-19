@@ -85,6 +85,7 @@ foreach ($headers as $header) {
 
 
 
+
 var_dump($data);
 
 // Cierra la sesión cURL
@@ -147,7 +148,7 @@ curl_close($ch2);
 
 <body>
         <div class="hero">
-            <h2 class="hero"><?php echo "HOY PODRÁS ACCEDER A LAS IMAGENES DE LA NASA ".$tokens." VECES MÁS"
+            <h2 class="hero"><?php echo "HOY PODRÁS ACCEDER A LAS IMAGENES DE LA NASA ".$remaining." VECES MÁS"
             ?></h2></div>
 
 
