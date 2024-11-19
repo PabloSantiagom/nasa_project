@@ -1,3 +1,24 @@
+<!-- IMPLEMENTAMOS LA COOKIE-->
+<?php
+if (!isset($_COOKIE["accesos"])) {
+    // Establecemos los valores iniciales para accesos y tokens
+    $tokens = ($api_key == "DEMO_KEY") ? 50 : 2000;
+    setcookie("tokens", $tokens, time() + 3600 * 24);
+    setcookie("accesos", 1, time() + 3600 * 365 * 24);
+} else {
+    // Incrementamos accesos y decrementamos tokens
+    $accesos = isset($_COOKIE["accesos"]) ? $_COOKIE["accesos"] : 0;
+    $accesos++;
+    setcookie("accesos", $accesos, time() + 3600 * 365 * 24);
+
+    $tokens = isset($_COOKIE["tokens"]) ? $_COOKIE["tokens"] : 0;
+    $tokens--;
+    setcookie("tokens", $tokens, time() + 3600 * 24);
+}
+?>
+
+
+
 <?php
 
 require 'autenticator.php';
@@ -34,6 +55,7 @@ $ch = curl_init();
 // Configura las opciones de cURL
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HEADER, true);
 
 // Ejecuta la petición cURL
 $response = curl_exec($ch);
@@ -49,6 +71,21 @@ if ($response === false) {
         echo "Error al cargar los datos de la API.";
     }
 }
+
+
+//Creamos unos array del apartado headers 
+
+$headers = explode("\r\n", $response);
+foreach ($headers as $header) {
+    if (stripos($header, 'X-RateLimit-Remaining:') === 0) {
+        list(, $remaining) = explode(': ', $header);
+        echo "Peticiones restantes: " . trim($remaining) . PHP_EOL;
+    }
+}
+
+
+
+var_dump($data);
 
 // Cierra la sesión cURL
 curl_close($ch);
@@ -96,8 +133,6 @@ curl_close($ch2);
 
 
 
-?>
-
 <!DOCTYPE html>
 <html lang="es">
 
@@ -111,6 +146,11 @@ curl_close($ch2);
 </head>
 
 <body>
+        <div class="hero">
+            <h2 class="hero"><?php echo "HOY PODRÁS ACCEDER A LAS IMAGENES DE LA NASA ".$tokens." VECES MÁS"
+            ?></h2></div>
+
+
     <!-- Navegación principal -->
     <nav class="hero">
         <a href="https://www.nasa.gov/about/">Sobre el espacio</a>
