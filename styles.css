@@ -380,16 +380,20 @@ body {
   font-size: 24px;
 }
 
-
+.cuadricula + .asteroides {
+  margin-bottom: 0; /* Elimina el espacio entre el párrafo y la cuadrícula */
+}
 
 .cuadricula {
+  margin-bottom: 0; /* Elimina el espacio entre el párrafo y la cuadrícula */
+  padding-top: 10px;
   display: grid;
   gap: 20px;
   grid-template-columns: repeat(6, 1fr); /* 6 columnas */
   justify-content: center; /* Centra horizontalmente */
   align-content: center; /* Centra verticalmente */
   min-height: 100vh; /* Ocupa toda la altura del viewport */
-  padding: 20px;
+  padding: 10px;
   margin: 0 auto; /* Centra la cuadrícula en la pantalla */
   max-width: 1200px; /* Limita el ancho máximo */
 }

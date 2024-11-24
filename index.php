@@ -1,3 +1,7 @@
+<!-- CREAMOS LA COOKIE-->
+
+
+
 <?php
 
 require 'autenticator.php';
@@ -7,6 +11,24 @@ if (session_status() == PHP_SESSION_NONE) {
     session_name('login');
     session_start();
 }
+
+//COOKIES
+$usuario = "invitado";
+
+if(!isset($_COOKIE["accesos"])){
+
+    setcookie("accesos",1,time()+3600+365+24);
+
+}else {
+    $accesos = $_COOKIE["accesos"];
+    $accesos++;
+    setcookie("accesos",$accesos,time()+3600+365+24);
+}
+
+if(!isset($_COOKIE["usuario"])){
+setcookie("user","Pablo", time()+3600);
+}
+
 
 // Clave de API de la NASA
 $api_key = "qyvBkVaphx9UBX9vrac97bx2PIKFn7Fvp4e7Wwie";
@@ -84,6 +106,14 @@ curl_close($ch2);
 
 <body>
     <div class="hero">
+        <?php 
+        if($accesos==1){
+            echo "<h2>BIENVENIDO $usuario has accedido por primera vez a la página</h2>";
+        } else {
+            echo  "<h2>BIENVENIDO $usuario has accedido $accesos veces a la página</h2>";
+                # code...
+            }    ?>   
+        
         <h2>HOY PODRÁS ACCEDER A LAS IMÁGENES DE LA NASA <?php echo htmlspecialchars($accesos_restantes); ?> VECES MÁS</h2>
         <?php if ($responseGetContent === false || empty($data)) {
             echo "<p>No se pudo obtener la imagen del día. Por favor, inténtalo más tarde.</p>";
@@ -175,19 +205,8 @@ curl_close($ch2);
 
             if ($data2 && isset($data2['near_earth_objects'][$fecha_calendario])): ?>
                 <h2 text-align="center">ASTEROIDES PELIGROSOS: 🔭💥<br></h2>
-                <p>Total de asteroides detectados: <?php echo $contador_asteroides; ?></p>
+                <p class="asteroids">Total de asteroides detectados: <?php echo $contador_asteroides; ?></p>
                 <br>
-                
-
-
-
-
-
-
-
-
-
-
                 <div class="cuadricula">
 
                     <?php foreach ($data2['near_earth_objects'][$fecha_calendario] as $obj): ?>
