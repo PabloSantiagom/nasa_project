@@ -1,101 +1,59 @@
-<!-- IMPLEMENTAMOS LA COOKIE-->
-
 <?php
 
 require 'autenticator.php';
-// Verificamos si la sesión no está ya activa para evitar errores al cambiar el nombre o iniciar una nueva sesión
+
+// Verificamos si la sesión no está ya activa
 if (session_status() == PHP_SESSION_NONE) {
     session_name('login');
     session_start();
 }
 
-
-?>
-
-<?php
-
-
-
-
-// Tu clave de API de la NASA (reemplázala con tu propia clave)
+// Clave de API de la NASA
 $api_key = "qyvBkVaphx9UBX9vrac97bx2PIKFn7Fvp4e7Wwie";
-$data2="";
-$fecha_calendario = date("Y-m-d"); // Usamos la fecha de hoy como default
+$data = null;
+$data2 = null;
+$fecha_calendario = date("Y-m-d"); // Fecha actual como predeterminada
 
-// Añadimos al endpoint la fecha seleccionada en el formulario si es enviada
+// Validamos y actualizamos la fecha si se envía desde el formulario
 if ($_SERVER['REQUEST_METHOD'] == "POST" && !empty($_POST['date'])) {
     $fecha_calendario = $_POST['date'];
-}
-
-// URL de la API APOD con la fecha incluida
-$url = "https://api.nasa.gov/planetary/apod?api_key=" . $api_key . "&date=" . $fecha_calendario;
-
-
-//------------------------>PETICIONES CURL
-
-
-// Inicia una sesión cURL
-$ch = curl_init();
-
-// Configura las opciones de cURL
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//curl_setopt($ch, CURLOPT_HEADER, true);
-
-// Ejecuta la petición cURL
-$response = curl_exec($ch);
-
-
-//ESTO PARA CARGAR LA INFO DEL HEADER PARA EL DATO DE LAS PETICIONES
-$headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-$headers = substr($response, 0, $headerSize);
-$dataHeader = substr($response, $headerSize);
-
-// Maneja errores y decodifica la respuesta
-if ($response === false) {
-    $error = curl_error($ch);
-    echo "Error en la petición cURL: $error";
-} else {
-    if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) {
-        $data = json_decode($response, true);
-    } else {
-        echo "Error al cargar los datos de la API.";
+    if (!DateTime::createFromFormat('Y-m-d', $fecha_calendario)) {
+        echo "La fecha proporcionada no es válida.";
+        $fecha_calendario = date("Y-m-d");
     }
 }
 
+// URL de la API APOD
+$url_apod = "https://api.nasa.gov/planetary/apod?api_key=" . $api_key . "&date=" . $fecha_calendario;
 
-//Creamos un array del apartado headers 
-
-// Procesa los headers
-$headerArray = [];
-foreach (explode("\r\n", $headers) as $header) {
-    if (strpos($header, ':') !== false) {
-        list($key, $value) = explode(': ', $header, 2);
-        $headerArray[trim($key)] = trim($value);
+// Obtenemos la respuesta de APOD
+$responseGetContent = file_get_contents($url_apod);
+if ($responseGetContent) {
+    $data = json_decode($responseGetContent, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo "Error al decodificar la respuesta JSON de APOD: " . json_last_error_msg();
+        $data = null;
     }
 }
 
+// Extraemos el límite de accesos restantes del encabezado
+$accesos_restantes = "Desconocido";
+foreach ($http_response_header as $header) {
+    if (stripos($header, "X-Ratelimit-Remaining:") !== false) {
+        $accesos_restantes = trim(explode(':', $header)[1]);
+        break;
+    }
+}
 
-
-
-
-// Cierra la sesión cURL
-curl_close($ch);
-
-// URL de la API NEO WS con la fecha incluida
+// URL de la API NEO WS
 $url_asteroids = "https://api.nasa.gov/neo/rest/v1/feed?start_date=" . $fecha_calendario . "&end_date=" . $fecha_calendario . "&api_key=" . $api_key;
 
-//------------------------>PETICIONES CURL
-// Inicia una sesión cURL
+// Petición a la API NEO WS con cURL
 $ch2 = curl_init();
-
-// Configura las opciones de cURL
 curl_setopt($ch2, CURLOPT_URL, $url_asteroids);
 curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
 
-// Ejecuta la petición cURL
 $response2 = curl_exec($ch2);
-$data2 = null;
 if ($response2 === false) {
     $error = curl_error($ch2);
     echo "Error en la petición cURL: $error";
@@ -107,31 +65,12 @@ if ($response2 === false) {
             $data2 = null;
         }
     } else {
-        echo "Error al cargar los datos de la API.";
+        echo "Error al cargar los datos de la API NEO.";
     }
 }
-
-// Cierra la sesión cURL
 curl_close($ch2);
 
-
-//------------------------>VAR DUM CON <PRE>
-
-echo "<pre>";
-var_dump($data);
-echo "</pre>";
 ?>
-
-
-
-
-
-
-
-
-
-
-
 
 <!DOCTYPE html>
 <html lang="es">
@@ -140,16 +79,16 @@ echo "</pre>";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NASA PIC OF THE DAY</title>
-
-
     <link rel="stylesheet" href="./styles.css">
 </head>
 
 <body>
-        <div class="hero">
-            <h2 class="hero"><?php echo "HOY PODRÁS ACCEDER A LAS IMAGENES DE LA NASA ".$headerArray['X-RateLimit-Remaining']." VECES MÁS"
-            ?></h2></div>
-
+    <div class="hero">
+        <h2>HOY PODRÁS ACCEDER A LAS IMÁGENES DE LA NASA <?php echo htmlspecialchars($accesos_restantes); ?> VECES MÁS</h2>
+        <?php if ($responseGetContent === false || empty($data)) {
+            echo "<p>No se pudo obtener la imagen del día. Por favor, inténtalo más tarde.</p>";
+        } ?>
+    </div>
 
     <!-- Navegación principal -->
     <nav class="hero">
@@ -159,16 +98,14 @@ echo "</pre>";
         <a href="https://www.nasa.gov/contact/">Contacto</a>
     </nav>
 
-
-
     <section class="calendar">
         <h1>NASA PIC OF THE DAY</h1>
-    <img src="./images/nasa2.png" alt="nasa" class="center">
+        <img src="./images/nasa2.png" alt="nasa" class="center">
 
         <canvas id="canvas"></canvas>
         <div class="content">
             <form method="post" action="index.php">
-            <br>
+                <br>
                 <label for="date">SELECCIONA UNA FOTO DE UN DÍA ANTERIOR:</label>
                 <br>
                 <br>
@@ -176,7 +113,7 @@ echo "</pre>";
                 <input class="login-btn" type="submit" value="Submit">
             </form>
 
-            
+
         </div>
 
         <div class="hero">
@@ -217,55 +154,54 @@ echo "</pre>";
 
         <div class="hero">
 
-        <h2>Viaja a las estrellas y descubre los asteroides cercanos detectados por la NASA 🚀</h2>
-        <br>
-    
+            <h2>Viaja a las estrellas y descubre los asteroides cercanos detectados por la NASA 🚀</h2>
+            <br>
 
 
-        <?php
+
+            <?php
             // Muestra los asteroides detectados (puedes personalizar esto)
             if (isset($data2)) {
                 echo "<br><div style='max-width: 800px; margin: 0 auto; text-align: center; font-size: 18px;'>";
                 echo "ASTEROIDES Detectados: " . $data2['element_count'] . "🔭📣<br>";
                 echo "<br>";
-
             }
-        
+
 
             $asteroides_cercanos_fecha = $data2['near_earth_objects'][$fecha_calendario];
             $contador_asteroides = count($asteroides_cercanos_fecha);
 
 
 
-        if ($data2 && isset($data2['near_earth_objects'][$fecha_calendario])): ?>
-        <h2 text-align="center">ASTEROIDES PELIGROSOS: 🔭💥<br></h2>
-        <p>Total de asteroides detectados: <?php echo $contador_asteroides; ?></p>
-        <br>
-            <div class="cuadricula">
-            
-                <?php foreach ($data2['near_earth_objects'][$fecha_calendario] as $obj): ?>
-                    <div class="apartado">
-                    <img src="./images/aste.png"  alt="Imagen 1" class="apartado-img">
-                        <h3><?php echo htmlspecialchars($obj['name']); ?></h3>
-                        <p>ID: <?php echo htmlspecialchars($obj['id']); ?></p>
-                        <?php if (isset($obj['estimated_diameter']['kilometers'])): ?>
-                            <p>Diámetro mínimo (km): <?php echo htmlspecialchars($obj['estimated_diameter']['kilometers']['estimated_diameter_min']); ?></p>
-                            <p>Diámetro máximo (km): <?php echo htmlspecialchars($obj['estimated_diameter']['kilometers']['estimated_diameter_max']); ?></p>
-                        <?php endif; ?>
-                        <a href="<?php echo htmlspecialchars($obj['nasa_jpl_url']); ?>" style="login-btn" target="_blank">Más información</a>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php else: ?>
-            <p text-color="#f5a623">No hay datos disponibles para la fecha proporcionada: <?php echo htmlspecialchars($fecha_calendario); ?>.</p>
-        <?php endif; ?>
-    </div>
+            if ($data2 && isset($data2['near_earth_objects'][$fecha_calendario])): ?>
+                <h2 text-align="center">ASTEROIDES PELIGROSOS: 🔭💥<br></h2>
+                <p>Total de asteroides detectados: <?php echo $contador_asteroides; ?></p>
+                <br>
+                <div class="cuadricula">
+
+                    <?php foreach ($data2['near_earth_objects'][$fecha_calendario] as $obj): ?>
+                        <div class="apartado">
+                            <img src="./images/aste.png" alt="Imagen 1" class="apartado-img">
+                            <h3><?php echo htmlspecialchars($obj['name']); ?></h3>
+                            <p>ID: <?php echo htmlspecialchars($obj['id']); ?></p>
+                            <?php if (isset($obj['estimated_diameter']['kilometers'])): ?>
+                                <p>Diámetro mínimo (km): <?php echo htmlspecialchars($obj['estimated_diameter']['kilometers']['estimated_diameter_min']); ?></p>
+                                <p>Diámetro máximo (km): <?php echo htmlspecialchars($obj['estimated_diameter']['kilometers']['estimated_diameter_max']); ?></p>
+                            <?php endif; ?>
+                            <a href="<?php echo htmlspecialchars($obj['nasa_jpl_url']); ?>" style="login-btn" target="_blank">Más información</a>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <p text-color="#f5a623">No hay datos disponibles para la fecha proporcionada: <?php echo htmlspecialchars($fecha_calendario); ?>.</p>
+            <?php endif; ?>
+        </div>
 
 
-                    <!-- Pie de página -->
-            <footer class="footer" id="contact">
-                <p>&copy; 2024 Exploración Espacial. Todos los derechos reservados.</p>
-            </footer>
+        <!-- Pie de página -->
+        <footer class="footer" id="contact">
+            <p>&copy; 2024 Exploración Espacial. Todos los derechos reservados.</p>
+        </footer>
 
 
         <script src="js/starback.js"></script>
@@ -300,15 +236,15 @@ echo "</pre>";
             }
         </script>
 
-<br>
-<button onclick="document.getElementById('logoutModal').style.display='block'" class="logout-btn">Cerrar sesión</button>
+        <br>
+        <button onclick="document.getElementById('logoutModal').style.display='block'" class="logout-btn">Cerrar sesión</button>
 
-<div id="logoutModal" class="modal" style="display:none;">
-    <h2>Cerrar sesión</h2>
-    <p>¿Estás seguro de que deseas cerrar sesión?</p>
-    <button class="logout-btn" onclick="window.location.href='login.php'">Confirmar</button>
-    <button class="logout-btn"onclick="document.getElementById('logoutModal').style.display='none'">Cancelar</button>
-</div>
+        <div id="logoutModal" class="modal" style="display:none;">
+            <h2>Cerrar sesión</h2>
+            <p>¿Estás seguro de que deseas cerrar sesión?</p>
+            <button class="logout-btn" onclick="window.location.href='login.php'">Confirmar</button>
+            <button class="logout-btn" onclick="document.getElementById('logoutModal').style.display='none'">Cancelar</button>
+        </div>
 
 
 

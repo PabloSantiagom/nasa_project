@@ -380,24 +380,19 @@ body {
   font-size: 24px;
 }
 
-.cuadricula-container {
-  display: flex; /* Flexbox para centrar */
-  justify-content: center; /* Centra horizontalmente */
-  align-items: center; /* Centra verticalmente */
-  min-height: 100vh; /* Ocupa toda la altura de la pantalla */
-}
 
 .cuadricula {
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(6, 1fr); /* 6 columnas iguales */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   padding: 20px;
   margin: 0 auto;
-  max-width: 100%; /* Permite que se ajuste al contenedor */
+  max-width: 1200px;
   background-color: transparent;
   /* Fondo transparente para tomar el color general */
   display: grid;
   gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
 .apartado {
@@ -514,22 +509,3 @@ body {
 
 
 }
-
-
-/* -- DISEÑO RESPONSIVE -- */
-@media screen and (max-width: 1200px) {
-  .cuadricula {
-    grid-template-columns: repeat(4, 1fr); /* 4 columnas en pantallas medianas */
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .cuadricula {
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en pantallas pequeñas */
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .cuadricula {
-    grid-template-columns: 1fr; /* 1 columna en pantallas muy pequeñas */
-  }
