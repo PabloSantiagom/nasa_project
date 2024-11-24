@@ -177,6 +177,17 @@ curl_close($ch2);
                 <h2 text-align="center">ASTEROIDES PELIGROSOS: 🔭💥<br></h2>
                 <p>Total de asteroides detectados: <?php echo $contador_asteroides; ?></p>
                 <br>
+                
+
+
+
+
+
+
+
+
+
+
                 <div class="cuadricula">
 
                     <?php foreach ($data2['near_earth_objects'][$fecha_calendario] as $obj): ?>
