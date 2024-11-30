@@ -1,3 +1,8 @@
+
+
+
+
+
 <!-- CREAMOS LA COOKIE-->
 
 
@@ -11,6 +16,20 @@ if (session_status() == PHP_SESSION_NONE) {
     session_name('login');
     session_start();
 }
+
+
+
+global $con;
+require 'database.php';
+$stmnt = $con->prepare("select * from users");
+$stmnt->execute();
+$datos = $stmnt -> fetchAll(PDO::FETCH_OBJ);
+
+// echo "<pre>";
+// var_dump($datos);
+// echo "</pre>";
+
+
 
 //COOKIES
 $usuario = "Desarrollador";
@@ -108,9 +127,9 @@ curl_close($ch2);
     <div class="hero">
         <?php 
         if($accesos==1){
-            echo "<h2>BIENVENIDO $usuario has accedido por primera vez a la página</h2>";
+            echo "<h2>BIENVENIDO has accedido por primera vez a la página</h2>";
         } else {
-            echo  "<h2>BIENVENIDO $usuario has accedido $accesos veces a la página</h2>";
+            echo  "<h2>BIENVENIDO has accedido $accesos veces a la página</h2>";
                 # code...
             }    ?>   
         
@@ -272,7 +291,7 @@ curl_close($ch2);
         <div id="logoutModal" class="modal" style="display:none;">
             <h2>Cerrar sesión</h2>
             <p>¿Estás seguro de que deseas cerrar sesión?</p>
-            <button class="logout-btn" onclick="window.location.href='login.php'">Confirmar</button>
+            <button class="logout-btn" onclick="window.location.href='logout.php'">Confirmar</button>
             <button class="logout-btn" onclick="document.getElementById('logoutModal').style.display='none'">Cancelar</button>
         </div>
 

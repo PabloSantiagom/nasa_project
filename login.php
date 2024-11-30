@@ -1,27 +1,124 @@
 
-<!-- IMPLEMENTAMOS LA SESIÓN-->
 <?php
+// Incluir la conexión a la base de datos
+require 'database.php';  // Verifica que la ruta sea correcta
+
+// Ahora puedes usar la variable $con para ejecutar consultas
 
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$bd = 'mysql:host=localhost;dbname=nasa';
+$usuario = 'admin';
+$clave = 'abc123.';
 
+try {
+    $con = new PDO($bd, $usuario, $clave);
+    $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    header('Location: index.php');
+        exit;
+} catch (PDOException $e) {
+    echo "Error de conexión: " . $e->getMessage();
+    exit;
+}
+
+
+?>
+
+
+
+
+
+<!-- IMPLEMENTAMOS LA SESIÓN-->
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Recibir los datos
     $username = $_POST['username'];
     $password = $_POST['password'];
 
+    // Validar que los datos no estén vacíos
     if (empty($username) || empty($password)) {
+        echo "Por favor, completa todos los campos.";
+        exit;
+    }
 
-        echo "Debes introducir un password por favor.";
-    } elseif ($username === 'pablo' && $password === 'pablo') {
-        session_name('login');
-        session_start();
-        $_SESSION['username'] = $username;
-        //echo "Bienvenido!!!";
-        header("Location:index.php");
-    } else {
+    // Validar que el nombre de usuario no exista ya en la base de datos
+    // Usaremos una consulta SQL para verificarlo
+    try {
+        $stmt = $con->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->execute([':username' => $username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        echo "Usuario o contraseña incorrecta";
+        if ($user) {
+            echo "Este nombre de usuario ya está en uso.";
+            exit;
+        }
+    } catch (PDOException $e) {
+        echo "Error en la base de datos: " . $e->getMessage();
+        exit;
+    }
+
+    // Hash de la contraseña
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+    // Insertar el nuevo usuario en la base de datos
+    try {
+        $stmt = $con->prepare("INSERT INTO users (username, password) VALUES (:username, :password)");
+        $stmt->execute([
+            ':username' => $username,
+            ':password' => $hashed_password
+        ]);
+
+        echo "Usuario registrado exitosamente.";
+    } catch (PDOException $e) {
+        echo "Error al registrar el usuario: " . $e->getMessage();
     }
 }
+?>
+
+
+
+<?php
+
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Obtener datos del formulario
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    // Validar que los datos no estén vacíos
+    if (empty($username) || empty($password)) {
+        echo "Por favor, completa todos los campos.";
+        exit;
+    }
+
+    // Buscar al usuario en la base de datos
+    try {
+        $stmt = $con->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->execute([':username' => $username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            echo "Usuario no encontrado.";
+            exit;
+        }
+
+        // Verificar la contraseña
+        if (password_verify($password, $user['password'])) {
+            echo "Inicio de sesión exitoso.";
+            // Aquí puedes iniciar sesión (crear sesión o cookies)
+            // session_start();
+            // $_SESSION['user_id'] = $user['id'];
+        } else {
+            echo "Contraseña incorrecta.";
+        }
+    } catch (PDOException $e) {
+        echo "Error en la base de datos: " . $e->getMessage();
+    }
+}
+
+
+
+
 
 ?>
 
@@ -76,8 +173,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input class="form-control" type="password" id="password" name="password" required>
                         <label for="password">Repetir contraseña:</label>
                         <input class="form-control" type="password" id="password" name="password" required>
-                        <label for="password">Introduce tu API Key:</label>
-                        <input class="form-control" type="password" id="password" name="password" required>
+                        <label for="token">Introduce tu API Key:</label>
+                        <input class="form-control" type="token" id="token" name="token" required>
                         <button type="submit" class="submit-btn">Crear tu cuenta</button>
                         <br>
                         <br>
