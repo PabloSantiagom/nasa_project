@@ -13,7 +13,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 //COOKIES
-$usuario = "invitado";
+$usuario = "Desarrollador";
 
 if(!isset($_COOKIE["accesos"])){
 
