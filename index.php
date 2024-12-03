@@ -1,29 +1,16 @@
-
-
-
-
-
-<!-- CREAMOS LA COOKIE-->
-
-
-
 <?php
-
-require 'autenticator.php';
-
+session_start(); // Iniciar la sesión
 // Verificamos si la sesión no está ya activa
-if (session_status() == PHP_SESSION_NONE) {
-    session_name('login');
-    session_start();
+if (!isset($_SESSION['username'])) {
+    header('Location: login.php');
+    exit;
 }
 
 
-
-global $con;
 require 'database.php';
 $stmnt = $con->prepare("select * from users");
 $stmnt->execute();
-$datos = $stmnt -> fetchAll(PDO::FETCH_OBJ);
+$datos = $stmnt->fetchAll(PDO::FETCH_OBJ);
 
 // echo "<pre>";
 // var_dump($datos);
@@ -33,19 +20,18 @@ $datos = $stmnt -> fetchAll(PDO::FETCH_OBJ);
 
 //COOKIES
 $usuario = "Desarrollador";
+$accesos = 0; //PRUEBA_PHP
+if (!isset($_COOKIE["accesos"])) {
 
-if(!isset($_COOKIE["accesos"])){
-
-    setcookie("accesos",1,time()+3600+365+24);
-
-}else {
+    setcookie("accesos", 1, time() + 3600 + 365 + 24);
+} else {
     $accesos = $_COOKIE["accesos"];
     $accesos++;
-    setcookie("accesos",$accesos,time()+3600+365+24);
+    setcookie("accesos", $accesos, time() + 3600 + 365 + 24);
 }
 
-if(!isset($_COOKIE["usuario"])){
-setcookie("user","Pablo", time()+3600);
+if (!isset($_COOKIE["usuario"])) {
+    setcookie("user", "Pablo", time() + 3600);
 }
 
 
@@ -117,7 +103,13 @@ curl_close($ch2);
 <html lang="es">
 
 <head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+        });
+    </script>
     <meta charset="UTF-8">
+    <link rel="shortcut icon" href="#">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NASA PIC OF THE DAY</title>
     <link rel="stylesheet" href="./styles.css">
@@ -125,14 +117,14 @@ curl_close($ch2);
 
 <body>
     <div class="hero">
-        <?php 
-        if($accesos==1){
+        <?php
+        if ($accesos == 1) {
             echo "<h2>BIENVENIDO has accedido por primera vez a la página</h2>";
         } else {
             echo  "<h2>BIENVENIDO has accedido $accesos veces a la página</h2>";
-                # code...
-            }    ?>   
         
+        }    ?>
+
         <h2>HOY PODRÁS ACCEDER A LAS IMÁGENES DE LA NASA <?php echo htmlspecialchars($accesos_restantes); ?> VECES MÁS</h2>
         <?php if ($responseGetContent === false || empty($data)) {
             echo "<p>No se pudo obtener la imagen del día. Por favor, inténtalo más tarde.</p>";
@@ -288,7 +280,7 @@ curl_close($ch2);
         <br>
         <button onclick="document.getElementById('logoutModal').style.display='block'" class="logout-btn">Cerrar sesión</button>
 
-        <div id="logoutModal" class="modal" style="display:none;">
+        <div id="logoutModal" class="modal">
             <h2>Cerrar sesión</h2>
             <p>¿Estás seguro de que deseas cerrar sesión?</p>
             <button class="logout-btn" onclick="window.location.href='logout.php'">Confirmar</button>
