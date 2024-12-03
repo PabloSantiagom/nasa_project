@@ -4,6 +4,13 @@ require 'database.php';  // Verifica que la ruta sea correcta
 
 session_unset();
 
+$username = "";
+$password = "";
+$newUsername = "";
+$newPassword = "";
+$newRepeatPassword = "";
+
+
 
 //<!-- IMPLEMENTAMOS LA SESIÓN-->
 
